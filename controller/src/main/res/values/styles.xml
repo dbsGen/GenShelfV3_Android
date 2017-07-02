@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="title" format="string"/>
+    <attr name="leftIcon" format="reference"/>
+    <attr name="rightIcon" format="reference"/>
+    <attr name="popAnimation" format="reference"/>
+    <attr name="pushAnimation" format="reference"/>
+    <attr name="fadeInAnimation" format="reference"/>
+    <attr name="fadeOutAnimation" format="reference"/>
+    <declare-styleable name="NavigationBar">
+        <attr name="title"/>
+        <attr name="leftIcon"/>
+        <attr name="rightIcon"/>
+    </declare-styleable>
+    <declare-styleable name="NavigationController">
+        <attr name="popAnimation"/>
+        <attr name="pushAnimation"/>
+        <attr name="fadeInAnimation"/>
+        <attr name="fadeOutAnimation"/>
+    </declare-styleable>
+</resources>

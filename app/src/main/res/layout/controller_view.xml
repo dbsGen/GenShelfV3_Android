@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cn.gen.gsv2.controllers.ViewController"
+    android:background="#000">
+
+    <cn.gen.gsv2.views.ScrollBorderView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/border">
+        <cn.gen.gsv2.views.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></cn.gen.gsv2.views.ViewPager>
+    </cn.gen.gsv2.views.ScrollBorderView>
+    <cn.gen.gsv2.views.LoadingView
+        android:id="@+id/loading_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></cn.gen.gsv2.views.LoadingView>
+
+</FrameLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:background="@drawable/side_nav_bar">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginLeft="10dp"
+        android:layout_centerVertical="true"
+        app:srcCompat="@drawable/no_image"
+        android:id="@+id/image" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/image"
+        android:layout_marginLeft="21dp"
+        android:layout_marginRight="10dp"
+        android:layout_toEndOf="@+id/image"
+        android:textSize="18sp"
+        android:id="@+id/title"
+        tools:text="title" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/title"
+        android:layout_alignStart="@+id/title"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:lines="3"
+        android:textSize="14sp"
+        android:layout_below="@+id/title" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/host_button"
+        style="@style/GenButton"
+        android:layout_margin="10dp"/>
+
+</RelativeLayout>
