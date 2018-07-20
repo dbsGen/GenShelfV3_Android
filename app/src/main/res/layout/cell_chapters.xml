@@ -5,30 +5,34 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/chapter"
             android:id="@+id/button1"
             style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:textColor="@drawable/chaptet_text"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"/>
-        <Button
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/chapter"
-            android:id="@+id/button2"
-            style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:textColor="@drawable/chaptet_text"
+            android:layout_marginBottom="5dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp" />
+            android:layout_weight="1"
+            android:background="@drawable/chapter"
+            android:elevation="1dp"
+            android:textColor="@drawable/chaptet_text" />
+
+        <Button
+            android:id="@+id/button2"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/chapter"
+            android:elevation="1dp"
+            android:textColor="@drawable/chaptet_text" />
 
         <Button
             android:layout_width="match_parent"
@@ -41,6 +45,7 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
+            android:elevation="1dp"
             android:layout_marginBottom="5dp" />
     </LinearLayout>
 

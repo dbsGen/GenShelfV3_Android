@@ -7,13 +7,14 @@
 //
 
 #include "DuktapeEngine.h"
+#include <core/Data.h>
 #include <core/Array.h>
 #include <duktape/duktape.h>
 
 using namespace nl;
 
 DuktapeEngine::DuktapeEngine() {
-    context = duk_create_heap(NULL, NULL, NULL, NULL,
+    context = duk_create_heap(NULL, NULL, NULL, this,
                               &DuktapeEngine::fatal_handler);
 }
 
@@ -22,7 +23,7 @@ DuktapeEngine::~DuktapeEngine() {
 }
 
 void DuktapeEngine::fatal_handler(void *udata, const char *msg) {
-    LOG(w, "error: %s", msg);
+    LOG(w, "Duktape: %s", msg);
 }
 
 Variant DuktapeEngine::process(void *context) {
@@ -39,7 +40,7 @@ Variant DuktapeEngine::process(void *context) {
         if (duk_get_prop_string(ctx, -1, "length")) {
             duk_int_t len = duk_get_int(ctx, -1);
             duk_pop(ctx);
-            RefArray arr;
+            Array arr;
             
             for (int i = 0; i < len; ++i) {
                 if (duk_get_prop_index(ctx, -1, i)) {
@@ -55,12 +56,25 @@ Variant DuktapeEngine::process(void *context) {
 
 Variant DuktapeEngine::eval(const char *script) {
     duk_context *ctx = (duk_context*)context;
-    duk_eval_string(ctx, script);
+    duk_peval_string(ctx, script);
     
     Variant ret = process(ctx);
     
     duk_pop(ctx);
     
+    return ret;
+}
+
+Variant DuktapeEngine::fileEval(const string &filepath) {
+    duk_context *ctx = (duk_context*)context;
+
+    FileData data(filepath);
+    duk_peval_string(ctx, data.text());
+
+    Variant ret = process(ctx);
+
+    duk_pop(ctx);
+
     return ret;
 }
 

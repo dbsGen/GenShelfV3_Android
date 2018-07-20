@@ -5,11 +5,6 @@
     tools:context="cn.gen.gsv2.controllers.SearchController"
     android:orientation="vertical">
 
-    <android.support.v7.widget.SearchView
-        android:id="@+id/search"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="#fff"></android.support.v7.widget.SearchView>
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@id/refresh"
         android:layout_width="match_parent"
@@ -19,5 +14,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"></ListView>
     </android.support.v4.widget.SwipeRefreshLayout>
+    <!--<ListView-->
+        <!--android:id="@+id/search_tips_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"></ListView>-->
 
 </LinearLayout>

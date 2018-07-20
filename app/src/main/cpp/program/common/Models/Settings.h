@@ -11,11 +11,15 @@
 
 #include <core/Ref.h>
 #include <core/Array.h>
+#include <core/Callback.h>
+#include <core/Data.h>
 #include "../nl_define.h"
 
-using namespace hicore;
+using namespace gcore;
 
 namespace nl {
+    class Shop;
+
     CLASS_BEGIN_N(SettingItem, RefObject)
     public:
         enum _ItemType {
@@ -24,7 +28,8 @@ namespace nl {
             Mark,
             Switch,
             Password,
-            Divider
+            Divider,
+            Button
         };
         typedef int ItemType;
     private:
@@ -88,9 +93,17 @@ namespace nl {
 
         string path;
         vector<Ref<SettingItem> > items;
+        map<string, Variant> values;
         Variant parseJson(void *node);
 
+        Shop *shop;
+
+        friend class Shop;
+
     public:
+
+        static const StringName NOTIFICATION_OPEN_WEB_VIEW;
+        static const StringName NOTIFICATION_SHOW_MESSAGE;
 
         METHOD _FORCE_INLINE_ void addItem(const Ref<SettingItem> &item) {
             items.push_back(item);
@@ -110,11 +123,15 @@ namespace nl {
         METHOD void save() const;
 
         METHOD const Ref<SettingItem> &findItem(const string &name) const;
-        METHOD _FORCE_INLINE_ const Variant &find(const string &name) const {
-            return findItem(name)->getValue();
-        }
+        METHOD const Variant &find(const string &name) const;
+        METHOD void set(const string &name, const Variant &val);
 
         EVENT(void, process);
+
+        METHOD Ref<Data> file(const char *filename);
+
+        METHOD void openWebView(const string &url, const string &name, const RefCallback &on_complete) const;
+        METHOD void message(const string &msg) const;
 
     protected:
         ON_LOADED_BEGIN(cls, RefObject)
@@ -126,6 +143,10 @@ namespace nl {
             ADD_METHOD(cls, Settings, save);
             ADD_METHOD(cls, Settings, findItem);
             ADD_METHOD(cls, Settings, find);
+            ADD_METHOD(cls, Settings, set);
+            ADD_METHOD(cls, Settings, openWebView);
+            ADD_METHOD(cls, Settings, file);
+            ADD_METHOD(cls, Settings, message);
         ON_LOADED_END
     CLASS_END
 }

@@ -8,6 +8,7 @@
 
 #include "Encoder.h"
 #include <iconv.h>
+#include <cstring>
 
 using namespace nl;
 
@@ -41,20 +42,20 @@ string Encoder::urlEncode(const char *str) {
 
 string Encoder::urlEncodeWithEncoding(const char *str, const char *encoding) {
     if (strcmp(encoding, UTF_8) != 0) {
-        iconv_t cd = iconv_open(encoding, "utf-8");
+        iconv_t cd = iconv_open(encoding, "utf-8//IGNORE");
         if (cd) {
             const char *instr = str;
             size_t inlen = strlen(instr);
             size_t outlen = 4 * inlen;
             char *oristr = (char*)malloc(outlen);
             char *outstr = oristr;
-            
+
             iconv(cd, (char**)&instr, &inlen, &outstr, &outlen);
-            
+
             string ret = urlEncode(oristr);
-            
+
             free(oristr);
-            
+
             iconv_close(cd);
             return ret;
         }
@@ -62,23 +63,26 @@ string Encoder::urlEncodeWithEncoding(const char *str, const char *encoding) {
     return urlEncode(str);
 }
 
-string Encoder::decode(const hicore::Ref<hicore::Data> &data, const char *encoding) {
-    iconv_t cd = iconv_open("utf-8", encoding);
+Ref<Data> Encoder::decode(const Ref<Data> &data, const char *encoding) {
+    iconv_t cd = iconv_open("utf-8//IGNORE", encoding);
     if (cd) {
-        const char *instr = data->text();
+        const void *instr = data->getBuffer();
         size_t inlen = data->getSize();
         size_t outlen = 2 * inlen;
         char *oristr = (char*)malloc(outlen);
         char *outstr = oristr;
-        
+
         iconv(cd, (char**)&instr, &inlen, &outstr, &outlen);
-        
-        string ret(oristr);
-        
+
+        outstr[0] = NULL;
+        BufferData *ret = new BufferData();
+        long l = outstr - oristr;
+        ret->initialize(oristr, outstr - oristr, BufferData::Copy);
+
         free(oristr);
-        
+
         iconv_close(cd);
         return ret;
     }
-    return string();
+    return nullptr;
 }

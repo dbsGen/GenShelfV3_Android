@@ -1,0 +1,78 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cn.gen.gsv2.controllers.TopicController">
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="58dp">
+        <ListView
+            android:id="@+id/list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:elevation="10dp"
+        android:orientation="horizontal"
+        android:background="#fff">
+        <ImageButton
+            android:id="@+id/books_button"
+            android:layout_width="43dp"
+            android:layout_height="wrap_content"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/book"
+            android:layout_centerVertical="true"
+            android:tint="@color/blue"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="43dp"
+            android:layout_marginRight="43dp">
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/comment_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="16dp"
+                android:ems="10"
+                android:hint="@string/add_comment"
+                android:inputType="textMultiLine" />
+        </android.support.design.widget.TextInputLayout>
+        <ImageButton
+            android:id="@+id/done"
+            android:layout_width="43dp"
+            android:layout_height="wrap_content"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:scaleType="fitCenter"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/done"
+            android:layout_centerVertical="true"
+            android:tint="@color/blue"/>
+    </RelativeLayout>
+
+    <cn.gen.gsv2.views.TouchPanel
+        android:id="@+id/loading_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:elevation="11dp"/>
+
+    <cn.gen.gsv2.views.BooksCover
+        android:id="@+id/books_cover"
+        android:elevation="11dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</RelativeLayout>

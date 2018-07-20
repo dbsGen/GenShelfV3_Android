@@ -1,0 +1,3 @@
+[submodule "app/src/main/cpp/grender"]
+	path = app/src/main/cpp/grender
+	url = https://github.com/dbsGen/grender.git

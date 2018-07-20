@@ -13,9 +13,11 @@
 #include "Page.h"
 #include "../nl_define.h"
 
-using namespace hicore;
+using namespace gcore;
 
 namespace nl {
+    class Book;
+
     CLASS_BEGIN_N(Chapter, RefObject)
     public:
         enum Status {
@@ -34,7 +36,7 @@ namespace nl {
         Status status;
         StringName shop_id;
 
-        RefArray pages;
+        Array pages;
         int picture_loaded;
 
     public:
@@ -55,10 +57,10 @@ namespace nl {
         }
         PROPERTY(url, getUrl, setUrl)
 
-        METHOD _FORCE_INLINE_ const RefArray &getPages() {
+        METHOD _FORCE_INLINE_ const Array &getPages() {
             return pages;
         }
-        METHOD _FORCE_INLINE_ void setPages(const RefArray &pages) {
+        METHOD _FORCE_INLINE_ void setPages(const Array &pages) {
             this->pages = pages;
         }
         PROPERTY(pages, getPages, setPages);
@@ -83,7 +85,17 @@ namespace nl {
         METHOD int downloadStatus();
         METHOD int pageStatus(int index);
         METHOD int oldDownloaded();
+        METHOD int pageCount();
+        METHOD int completeCount();
         METHOD void bringFirst(int index);
+
+        METHOD Array cachedPages() const;
+        METHOD void cachePages(const Array &pages) const;
+        METHOD int lastIndex() const;
+        METHOD void setLastIndex(int idx) const;
+        METHOD void stopDownload();
+
+        METHOD static void downloadingChapters(const Array &books, const Array &chapters);
 
         void saveConfig(const string &path);
 
@@ -99,7 +111,15 @@ namespace nl {
             ADD_METHOD(cls, Chapter, downloadStatus);
             ADD_METHOD(cls, Chapter, pageStatus);
             ADD_METHOD(cls, Chapter, oldDownloaded);
+            ADD_METHOD(cls, Chapter, pageCount);
+            ADD_METHOD(cls, Chapter, completeCount);
             ADD_METHOD(cls, Chapter, bringFirst);
+            ADD_METHOD(cls, Chapter, cachedPages);
+            ADD_METHOD(cls, Chapter, cachePages);
+            ADD_METHOD(cls, Chapter, lastIndex);
+            ADD_METHOD(cls, Chapter, setLastIndex);
+            ADD_METHOD(cls, Chapter, downloadingChapters);
+            ADD_METHOD(cls, Chapter, stopDownload);
         ON_LOADED_END
     CLASS_END
 }

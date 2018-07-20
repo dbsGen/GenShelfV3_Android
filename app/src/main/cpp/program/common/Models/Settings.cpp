@@ -7,12 +7,20 @@
 //
 
 #include "Settings.h"
+#include "Shop.h"
+#include <math.h>
 #include <core/Data.h>
 #include <core/String.h>
+#include <utils/NotificationCenter.h>
 #include <utils/json/libjson.h>
+#include <cstring>
 
 using namespace nl;
-using namespace hicore;
+using namespace gcore;
+using namespace gr;
+
+const StringName Settings::NOTIFICATION_OPEN_WEB_VIEW("OPEN_WEB_VIEW");
+const StringName Settings::NOTIFICATION_SHOW_MESSAGE("SHOW_MSG");
 
 const Variant &SettingItem::getValue() {
     if (!value.empty()) {
@@ -32,13 +40,13 @@ void Settings::removeItem(const Ref<nl::SettingItem> &item) {
 
 Variant Settings::parseJson(void *node) {
     Variant ret;
-    switch (json_type(node)) {
+    switch (json_ctype(node)) {
         case JSON_ARRAY:{
             variant_vector vs;
             for (int i = 0, t = json_size(node); i < t; ++i) {
                 vs.push_back(parseJson(json_at(node, i)));
             }
-            ret = RefArray(vs);
+            ret = Array(vs);
             break;
         }
         case JSON_STRING: {
@@ -55,7 +63,7 @@ Variant Settings::parseJson(void *node) {
             ret = json_as_bool(node);
             break;
         }
-            
+
         default:
             break;
     }
@@ -76,7 +84,7 @@ void Settings::parse(const char *path) {
                 char *str = json_as_string(name_node);
                 item->setName(str);
                 json_free(str);
-                
+
                 JSONNODE *type_node = json_get(node, "type");
                 if (type_node) {
                     char *str = json_as_string(type_node);
@@ -93,12 +101,12 @@ void Settings::parse(const char *path) {
                     }
                     json_free(str);
                 }
-                
+
                 JSONNODE *param_node = json_get(node, "param");
                 if (param_node) {
                     item->setParams(parseJson(param_node));
                 }
-                
+
                 JSONNODE *default_node = json_get(node, "default");
                 if (default_node) {
                     item->setDefaultValue(parseJson(default_node));
@@ -117,6 +125,32 @@ const Ref<SettingItem> &Settings::findItem(const string &name) const {
         }
     }
     return Ref<SettingItem>::null();
+}
+
+const Variant& Settings::find(const string &name) const {
+    const Ref<SettingItem> &item = findItem(name);
+    if (item) {
+        return item->getValue();
+    }else {
+        auto it = values.find(name);
+        if (it != values.end()) {
+            return it->second;
+        }
+        return Variant::null();
+    }
+}
+
+Ref<Data> Settings::file(const char *filename) {
+    return shop->file(filename);
+}
+
+void Settings::set(const string &name, const Variant &val) {
+    const Ref<SettingItem> &item = findItem(name);
+    if (item) {
+        item->setValue(name);
+    }else {
+        values[name] = val;
+    }
 }
 
 void Settings::save() const {
@@ -151,6 +185,22 @@ void Settings::save() const {
                         break;
                 }
             }
+        }
+        for (auto it = values.begin(), _e = values.end(); it != _e; ++it) {
+            const Variant &val = it->second;
+            JSONNODE *new_child = NULL;
+            const HClass *type = val.getType();
+            if (type == Integer::getClass() ||
+                    type == Long::getClass()) {
+                new_child = json_new_i(it->first.c_str(), (int)val);
+            }else if (type == Float::getClass() ||
+                    type == Double::getClass()) {
+                new_child = json_new_f(it->first.c_str(), val);
+            }else if (type == String::getClass()) {
+                new_child = json_new_a(it->first.c_str(), val);
+            }
+            if (new_child)
+                _it = json_insert(node, _it, new_child);
         }
         char *str = json_write(node);
         FILE *f = fopen(path.c_str(), "wb");
@@ -206,7 +256,32 @@ void Settings::load(const string &path) {
                             item->setValue(json_as_int(child));
                             break;
                         }
-                            
+
+                        default:
+                            break;
+                    }
+                }else {
+                    char type = json_ctype(child);
+                    switch (type) {
+                        case JSON_BOOL: {
+                            values[name] = (bool)json_as_bool(child);
+                            break;
+                        }
+                        case JSON_STRING: {
+                            char *str = json_as_string(child);
+                            values[name] = Variant(str);
+                            json_free(str);
+                            break;
+                        }
+                        case JSON_NUMBER: {
+                            float num = json_as_float(child);
+                            float n = floorf(num);
+                            if (num == n) {
+                                values[name] = (int)n;
+                            }else {
+                                values[name] = num;
+                            }
+                        }
                         default:
                             break;
                     }
@@ -215,7 +290,16 @@ void Settings::load(const string &path) {
             }
             json_delete(node);
         }
-        
+
     }
 }
 
+void Settings::openWebView(const string &url, const string &name, const RefCallback &on_complete) const {
+    variant_vector vs{url, name, on_complete};
+    NotificationCenter::getInstance()->trigger(NOTIFICATION_OPEN_WEB_VIEW, &vs);
+}
+
+void Settings::message(const string &msg) const {
+    variant_vector vs{msg};
+    NotificationCenter::getInstance()->trigger(NOTIFICATION_SHOW_MESSAGE, &vs);
+}

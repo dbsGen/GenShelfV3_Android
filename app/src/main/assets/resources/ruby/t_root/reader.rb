@@ -13,31 +13,37 @@ class Reader < HiEngine::Object
     load_page chapter.url
   end
 
+
+  def get_passid 
+    p_id = settings.find 'pass_id'
+    p_secret = settings.find 'pass_secret'
+    yield p_id, p_secret
+  end
+
   def load_page url, pages = [], offset = 0
     @client = HTTPClient.new url
     @client.read_cache = true
     @client.retry_count = 3
     @client.delay = 0.5
+    is_ex = settings.find 'Switch'
+    if is_ex == 1
+      get_passid do |p_id, p_secret|
+        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
+      end
+    end
     @client.on_complete = Callback.new do |c|
       @client = nil
       return if @stop
       if c.getError.length == 0
         doc = XMLDocument.new FileData.new(c.path), 1
-        rows = doc.xpath "//div[@id='gh']/div[@class='gi']/a"
+        rows = doc.xpath "//div[@id='gdt']/div[@class='gdtm']//a"
         rows.each do |row|
           page = Page.new
           page.status = 0
-          page.url = row.getAttribute 'href'
+          page.url = row.attr 'href'
           pages << page
         end
-        links = doc.xpath "//div[@id='ia']/a"
-        next_node = nil
-        links.each do |link|
-          if link.getContent['Next Page'] != nil
-            next_node = link
-            break
-          end
-        end
+        next_node = doc.xpath("//div[@class='gtb']/table[@class='ptt'][1]//td[last()]/a").first
         process_page pages, offset do
           if next_node
             n_url = next_node.attr 'href'
@@ -77,11 +83,17 @@ class Reader < HiEngine::Object
     @client.delay = 0.5
     @client.read_cache = read_cache
     @client.retry_count = 3
+    is_ex = settings.find 'Switch'
+    if is_ex == 1
+      get_passid do |p_id, p_secret|
+        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
+      end
+    end
     @client.on_complete = Callback.new do |c|
       @client = nil
       if c.getError.length == 0
         doc = XMLDocument.new FileData.new(c.path), 1
-        img_node = doc.xpath("//img[@id='sm']").first
+        img_node = doc.xpath("//img[@id='img']").first
         yield true, img_node.attr('src')
       else
         yield false, nil

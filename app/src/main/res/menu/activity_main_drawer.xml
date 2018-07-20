@@ -12,8 +12,16 @@
             android:title="@string/home_library" />
         <item
             android:id="@+id/settins"
-            android:icon="@drawable/setting"
-            android:title="@string/home_settings" />
+            android:icon="@drawable/list"
+            android:title="@string/home_shops" />
+        <item
+            android:id="@+id/history"
+            android:icon="@drawable/clock"
+            android:title="@string/home_history" />
+        <item
+            android:id="@+id/social"
+            android:icon="@drawable/share"
+            android:title="@string/home_social"/>
     </group>
 
 </menu>

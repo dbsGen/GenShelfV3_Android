@@ -5,8 +5,11 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="home_shelf">绅士的书架</string>
+    <string name="home_like">绅士的关注</string>
     <string name="home_library">绅士的藏书馆</string>
-    <string name="home_settings">森罗万象</string>
+    <string name="home_shops">森罗万象</string>
+    <string name="home_history">绅士的记录</string>
+    <string name="home_social">绅士社交场</string>
     <string name="search">寻幽探胜</string>
 
     <string name="action_settings">设置</string>
@@ -27,13 +30,17 @@
     <string name="loading">加载中…</string>
     <string name="no_more">没有更多</string>
 
-    <string name="collect">收藏</string>
+    <string name="collect">收藏(到本地)</string>
     <string name="refresh">刷新</string>
     <string name="confirm">提示</string>
     <string name="will_delete">是否删除 "{0}"?</string>
     <string name="will_collect">是否收藏 "{0}"?</string>
+    <string name="will_unlike">不再关注 "{0}" 啦?</string>
     <string name="yes">是</string>
     <string name="no">否</string>
+
+    <string name="portrait">竖屏</string>
+    <string name="landscape">横屏</string>
     
     <string name="goto_library">空空如也，收藏一点吧</string>
     <string name="goto_shops">空空如也，去安装一个吧</string>
@@ -41,4 +48,44 @@
     <string name="collect_ok">收藏…好的!</string>
 
     <string name="will_upgrade">有新版本了,是否升级?</string>
+
+    <string name="last">上次:</string>
+    <string name="like_book">我知道了，你喜欢"{0}"</string>
+    <string name="unlike_book">好吧，已经移除</string>
+
+    <string name="gen_downloading">绅士的行进</string>
+    <string name="waiting">等待中…</string>
+    <string name="complete">完成</string>
+    <string name="paused">暂停</string>
+    <string name="failed">失败</string>
+    <string name="unkown">未知</string>
+    
+    <string name="topic_subtitle" formatted="false">%s/%s 评论:%d</string>
+
+    <string name="title">标题</string>
+    <string name="category_d">分类:</string>
+    <string name="content">内容</string>
+
+    <string name="require_title">必须要取一个标题!</string>
+    <string name="require_content">你还没有写内容!</string>
+    <string name="require_category">还没有拿到分类!</string>
+
+    <string name="added_share">已经添加到分享列表，再点一次可以发表分享。</string>
+    <string name="no_shop">没有安装制定藏书馆,需要先安装。</string>
+    <string name="unkown_shop">未知的藏书馆。</string>
+
+    <string name="save">保存到相册</string>
+    <string name="share">分享</string>
+    <string name="comments">评论</string>
+    <string name="add_comment">输入评论</string>
+    <string name="post_topic">发表话题</string>
+
+    <string name="save_ok">已保存</string>
+    <string name="save_failed">保存失败</string>
+    <string name="save_not_ready">图片还没下载好</string>
+
+    <string name="output_zip">保存压缩包</string>
+
+    <string name="will_remove_history">清空历史?</string>
+    <string name="no_history">了无踪迹</string>
 </resources>

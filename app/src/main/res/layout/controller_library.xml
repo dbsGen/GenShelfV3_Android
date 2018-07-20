@@ -1,4 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,9 +13,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"></ListView>
     </android.support.v4.widget.SwipeRefreshLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floating_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/setting"
+        android:tint="#fff"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"/>
+
     <cn.gen.gsv2.views.StatusView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/status_view"></cn.gen.gsv2.views.StatusView>
 
-</FrameLayout>
+</RelativeLayout>

@@ -5,10 +5,10 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "cn.gen.gsv2"
-        minSdkVersion 21
+        minSdkVersion 17
         targetSdkVersion 25
-        versionCode 6
-        versionName "3.3"
+        versionCode 33
+        versionName "3.11.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -19,7 +19,7 @@ android {
             // Specifies the ABI configurations of your native
             // libraries Gradle should build and package with your APK.
             stl = 'gnustl_shared'
-            abiFilters = ['armeabi-v7a', 'x86']
+            abiFilters = ['armeabi', 'arm64-v8a', 'x86_64', 'armeabi-v7a', 'x86']
         }
     }
     buildTypes {
@@ -28,10 +28,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
+//    externalNativeBuild {
+//        cmake {
+//            path "CMakeLists.txt"
+//        }
+//    }
+}
+repositories {
+    flatDir {
+        dirs 'libs'
     }
 }
 
@@ -43,6 +48,7 @@ dependencies {
     compile project(':controller')
     compile project(':pinchimageview')
 
+    compile(name: 'lib-badge', ext: 'aar')
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
@@ -51,6 +57,7 @@ dependencies {
     compile 'com.nhaarman.listviewanimations:lib-manipulation:3.1.0@aar'
     compile 'com.nhaarman.listviewanimations:lib-core-slh:3.1.0@aar'
     compile 'com.contrarywind:Android-PickerView:3.2.5'
-    compile "org.apache.httpcomponents:httpmime:4.2.3"
+    compile 'org.apache.httpcomponents:httpmime:4.2.3'
+    compile 'com.miguelcatalan:materialsearchview:1.4.0'
     testCompile 'junit:junit:4.12'
 }

@@ -19,7 +19,7 @@
                 android:layout_height="120dp"
                 android:background="@drawable/side_nav_bar">
 
-                <ImageView
+                <cn.gen.gsv2.views.ImageView
                     android:id="@+id/image"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
@@ -28,6 +28,9 @@
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="10dp"
                     android:layout_marginStart="10dp"
+                    android:background="#fff"
+                    android:elevation="4dp"
+                    android:scaleType="centerCrop"
                     app:srcCompat="@drawable/no_image" />
 
                 <TextView
@@ -41,6 +44,7 @@
                     android:layout_toRightOf="@+id/image"
                     android:maxLines="1"
                     android:textSize="18dp"
+                    android:textColor="#fff"
                     android:text="Title" />
 
                 <TextView

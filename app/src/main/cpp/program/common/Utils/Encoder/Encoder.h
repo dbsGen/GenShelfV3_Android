@@ -13,15 +13,17 @@
 #include <core/Data.h>
 #include "../../nl_define.h"
 
-
+using namespace gcore;
 namespace nl {
     CLASS_BEGIN_0_NV(Encoder)
     
     public:
+        // url 编码默认用utf-8编码，urlEncodeWithEncoding来选择编码例如:"gbk"
         METHOD static string urlEncode(const char *);
         METHOD static string urlEncodeWithEncoding(const char *, const char *encoding);
     
-        METHOD static string decode(const hicore::Ref<hicore::Data> &data, const char *encoding);
+        // 字符串编码(encoding -> utf-8)
+        METHOD static Ref<Data> decode(const Ref<Data> &data, const char *encoding);
     
     protected:
         ON_LOADED_BEGIN(cls, HObject)

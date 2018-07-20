@@ -7,8 +7,11 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
@@ -44,6 +47,10 @@ public class PinchImageView extends ImageView  {
 
     ////////////////////////////////监听器////////////////////////////////
 
+    public interface OnClickListener {
+        void onClick(View v, MotionEvent event);
+    }
+
     /**
      * 外界点击事件
      *
@@ -58,7 +65,6 @@ public class PinchImageView extends ImageView  {
      */
     private OnLongClickListener mOnLongClickListener;
 
-    @Override
     public void setOnClickListener(OnClickListener l) {
         //默认的click会在任何点击情况下都会触发，所以搞成自己的
         mOnClickListener = l;
@@ -561,7 +567,7 @@ public class PinchImageView extends ImageView  {
      */
     protected float calculateNextScale(float innerScale, float outerScale) {
         float currentScale = innerScale * outerScale;
-        if (currentScale < MAX_SCALE) {
+        if (MAX_SCALE - currentScale > 0.01f) {
             return MAX_SCALE;
         } else {
             return innerScale;
@@ -627,7 +633,7 @@ public class PinchImageView extends ImageView  {
      *
      * @return 是否能执行手势相关计算
      */
-    private boolean isReady() {
+    protected boolean isReady() {
         return getDrawable() != null && getDrawable().getIntrinsicWidth() > 0 && getDrawable().getIntrinsicHeight() > 0
                 && getWidth() > 0 && getHeight() > 0;
     }
@@ -768,6 +774,22 @@ public class PinchImageView extends ImageView  {
      */
     private FlingAnimator mFlingAnimator;
 
+    public boolean scrollOrCannot(boolean next) {
+        float width = PinchImageView.this.getWidth();
+        if (next) {
+            if (checkScroll(-1, 0)) {
+                PinchImageView.this.scrollBy(-width, 0, true);
+                return true;
+            }
+        }else {
+            if (checkScroll(1, 0)) {
+                PinchImageView.this.scrollBy(width, 0, true);
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * 常用手势处理
      *
@@ -799,9 +821,63 @@ public class PinchImageView extends ImageView  {
         }
 
         public boolean onSingleTapConfirmed(MotionEvent e) {
+            float width = PinchImageView.this.getWidth();
+            float height = PinchImageView.this.getHeight();
+            float x = e.getX();
+            float y = e.getY();
+
+            float px = x/width;
+            float py = y/height;
+            if (px > 2/3.0f && py > 2/3.0f) {
+                if (px > py) {
+                    if (checkScroll(-1, 0)) {
+                        PinchImageView.this.scrollBy(-width, 0, true);
+                        return true;
+                    }
+                }else {
+                    if (checkScroll(0, -1)) {
+                        PinchImageView.this.scrollBy(0, -height, true);
+                        return true;
+                    }
+                }
+            }else if (px < 1/3.0f && py < 1/3.0f) {
+                if (px < py) {
+                    if (checkScroll(1, 0)) {
+                        PinchImageView.this.scrollBy(width, 0, true);
+                        return true;
+                    }
+                }else {
+                    if (checkScroll(0, 1)) {
+                        PinchImageView.this.scrollBy(0, height, true);
+                        return true;
+                    }
+                }
+            }else if (px > 2/3.0f) {
+                boolean ret = checkScroll(-1, 0);
+                if (ret) {
+                    PinchImageView.this.scrollBy(-width, 0, true);
+                    return true;
+                }
+            }else if (px < 1/3.0f) {
+                if (checkScroll(1, 0)) {
+                    PinchImageView.this.scrollBy(width, 0, true);
+                    return true;
+                }
+            }else if (py > 2/3.0f) {
+                if (checkScroll(0, -1)) {
+                    PinchImageView.this.scrollBy(0, -height, true);
+                    return true;
+                }
+            }else if (py < 1/3.0f) {
+                if (checkScroll(0, 1)) {
+                    PinchImageView.this.scrollBy(0, height, true);
+                    return true;
+                }
+            }
+
             //触发点击
             if (mOnClickListener != null) {
-                mOnClickListener.onClick(PinchImageView.this);
+                mOnClickListener.onClick(PinchImageView.this, e);
             }
             return true;
         }
@@ -877,6 +953,55 @@ public class PinchImageView extends ImageView  {
         return true;
     }
 
+    public boolean checkScroll(float xDiff, float yDiff) {
+        if (!isReady()) {
+            return false;
+        }
+        //原图方框
+        RectF bound = MathUtils.rectFTake();
+        getImageBound(bound);
+        //控件大小
+        float displayWidth = getWidth();
+        float displayHeight = getHeight();
+        //如果当前图片宽度小于控件宽度，则不能移动
+        if (bound.right - bound.left < displayWidth) {
+            //如果图片左边在移动后超出控件左边
+            xDiff = 0;
+        } else if (bound.left + xDiff > 0) {
+            //如果在移动之前是没超出的，计算应该移动的距离
+            if (bound.left < 0) {
+                return true;
+            } else {
+                xDiff = 0;
+            }
+            //如果图片右边在移动后超出控件右边
+        } else if (bound.right + xDiff < displayWidth) {
+            //如果在移动之前是没超出的，计算应该移动的距离
+            if (bound.right > displayWidth) {
+                return true;
+            } else {
+                xDiff = 0;
+            }
+        }
+        //以下同理
+        if (bound.bottom - bound.top < displayHeight) {
+            yDiff = 0;
+        } else if (bound.top + yDiff > 0) {
+            if (bound.top < 0) {
+                return true;
+            } else {
+                yDiff = 0;
+            }
+        } else if (bound.bottom + yDiff < displayHeight) {
+            if (bound.bottom > displayHeight) {
+                return true;
+            } else {
+                yDiff = 0;
+            }
+        }
+        return xDiff != 0 || yDiff != 0;
+    }
+
     /**
      * 让图片移动一段距离
      *
@@ -887,6 +1012,10 @@ public class PinchImageView extends ImageView  {
      * @return 是否改变了位置
      */
     private boolean scrollBy(float xDiff, float yDiff) {
+        return scrollBy(xDiff, yDiff, false);
+    }
+
+    private boolean scrollBy(float xDiff, float yDiff, boolean animated) {
         if (!isReady()) {
             return false;
         }
@@ -936,7 +1065,13 @@ public class PinchImageView extends ImageView  {
         }
         MathUtils.rectFGiven(bound);
         //应用移动变换
-        mOuterMatrix.postTranslate(xDiff, yDiff);
+        if (animated) {
+            Matrix mat = MathUtils.matrixTake();
+            getOuterMatrix(mat);
+            mat.postTranslate(xDiff, yDiff);
+            outerMatrixTo(mat, 300);
+        }else
+            mOuterMatrix.postTranslate(xDiff, yDiff);
         dispatchOuterMatrixChanged();
         //触发重绘
         invalidate();
@@ -1016,7 +1151,7 @@ public class PinchImageView extends ImageView  {
      * @see #calculateNextScale(float, float)
      * @see #getMaxScale()
      */
-    private void doubleTap(float x, float y) {
+    protected void doubleTap(float x, float y) {
         if (!isReady()) {
             return;
         }

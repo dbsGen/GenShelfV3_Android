@@ -13,7 +13,7 @@
 #include <utils/network/HTTPClient.h>
 #include "../nl_define.h"
 
-using namespace hicore;
+using namespace gcore;
 
 namespace nl {
 
@@ -25,7 +25,7 @@ namespace nl {
         int status;
         Ref<Page> page;
         DownloadChapter *chapter;
-        Ref<hirender::HTTPClient> client;
+        Ref<gr::HTTPClient> client;
         int index;
 
         friend class DownloadChapter;
@@ -42,6 +42,7 @@ namespace nl {
         static const StringName &NOTIFICATION_STATUS;
 
         DownloadPage();
+        ~DownloadPage();
 
         _FORCE_INLINE_ int getStatus() {
             return status;
@@ -55,7 +56,8 @@ namespace nl {
 
     CLASS_BEGIN_N(DownloadChapter, RefObject)
 
-        map<int, Ref<DownloadPage> >  pages;
+        unordered_map<int, Ref<DownloadPage> >  pages;
+        vector<Ref<DownloadPage> > cache_pages;
         int status;
         Ref<Book> book;
         Ref<Chapter> chapter;
@@ -90,6 +92,7 @@ namespace nl {
          * CHAPTER_PAGE_COUNT
          * @param chapter Chapter*,
          * @param count int
+         * @param completed int
          */
         static const StringName &NOTIFICATION_PAGE_COUNT;
 
@@ -100,6 +103,14 @@ namespace nl {
         }
         void setStatus(int status);
 
+        _FORCE_INLINE_ const Ref<Book> &getBook() {
+            return book;
+        }
+
+        _FORCE_INLINE_ const Ref<Chapter> &getChapter() {
+            return chapter;
+        }
+
         void start();
         void stop();
 
@@ -107,18 +118,21 @@ namespace nl {
 
     CLASS_BEGIN_TN(DownloadQueue, Singleton, 1, DownloadQueue)
 
+        Ref<DownloadChapter> cache_chapter;
         map<string, Ref<DownloadChapter> > chapters;
-        pointer_list chapters_queue;
-        pointer_list pages_queue;
+        list<Ref<DownloadChapter> > chapters_queue;
+        list<Ref<DownloadPage> > pages_queue;
 
-        DownloadChapter *current_chapter;
-        DownloadPage *current_page;
+        Ref<DownloadChapter> current_chapter;
+        Ref<DownloadPage> current_page;
 
         void checkChaptersQueue();
         void checkPageQueue();
 
         void pushPage(DownloadPage *page);
         void pausePage(DownloadPage *page);
+
+        void loadAll();
 
         friend class DownloadPage;
         friend class DownloadChapter;
@@ -129,7 +143,8 @@ namespace nl {
             StatusLoading = 1,
             StatusComplete = 2,
             StatusPause = 3,
-            StatusFailed
+            StatusFailed,
+            StatusWaiting
         };
         enum _Result {
             ResultStart = 0,
@@ -141,7 +156,10 @@ namespace nl {
 
         DownloadQueue();
 
+        const map<string, Ref<DownloadChapter> > &getChapters();
+
         METHOD int pageCount(Chapter *chapter);
+        METHOD int completeCount(Chapter *chapter);
         METHOD int chapterOldDownloaded(Chapter *chapter);
         METHOD float chapterPercent(Chapter *chapter);
         METHOD Status chapterStatus(Chapter *chapter);
@@ -149,11 +167,16 @@ namespace nl {
         METHOD Status pageStatusAndBringFirst(Chapter *chapter, int idx);
 
         METHOD Result startDownload(Book *book, Chapter *chapter);
-        METHOD void stopDownload(Chapter *chapter);
+        METHOD void stopDownload(const Ref<Chapter> &chapter);
+        METHOD void removeDownload(Chapter *chapter);
+
+        METHOD void save();
+        METHOD void restore();
 
     protected:
         ON_LOADED_BEGIN(cls, Singleton<DownloadQueue>)
             ADD_METHOD(cls, DownloadQueue, pageCount);
+            ADD_METHOD(cls, DownloadQueue, completeCount);
             ADD_METHOD(cls, DownloadQueue, chapterOldDownloaded);
             ADD_METHOD(cls, DownloadQueue, chapterPercent);
             ADD_METHOD(cls, DownloadQueue, chapterStatus);
@@ -161,6 +184,8 @@ namespace nl {
             ADD_METHOD(cls, DownloadQueue, pageStatusAndBringFirst);
             ADD_METHOD(cls, DownloadQueue, startDownload);
             ADD_METHOD(cls, DownloadQueue, stopDownload);
+            ADD_METHOD(cls, DownloadQueue, save);
+            ADD_METHOD(cls, DownloadQueue, restore);
         ON_LOADED_END
     CLASS_END
 }

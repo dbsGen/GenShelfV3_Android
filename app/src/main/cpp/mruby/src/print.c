@@ -17,7 +17,7 @@ printstr(mrb_value obj, FILE *stream)
 {
   if (mrb_string_p(obj)) {
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_INFO, "HiRender", "%s", RSTRING_PTR(obj));
+    __android_log_print(ANDROID_LOG_INFO, "GRender", "%s", RSTRING_PTR(obj));
 #else
     fwrite(RSTRING_PTR(obj), RSTRING_LEN(obj), 1, stream);
     putc('\n', stream);

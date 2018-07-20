@@ -6,25 +6,16 @@
     android:layout_height="120dp"
     android:background="@drawable/side_nav_bar">
 
-    <ImageView
+    <cn.gen.gsv2.views.ImageView
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_marginLeft="10dp"
         android:layout_centerVertical="true"
         app:srcCompat="@drawable/no_image"
+        android:scaleType="centerCrop"
+        android:elevation="4dp"
+        android:background="#fff"
         android:id="@+id/image" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/image"
-        android:layout_marginLeft="21dp"
-        android:layout_marginRight="10dp"
-        android:layout_toEndOf="@+id/image"
-        android:textSize="18sp"
-        android:id="@+id/title"
-        tools:text="title" />
 
     <TextView
         android:id="@+id/description"
@@ -34,6 +25,7 @@
         android:layout_alignStart="@+id/title"
         android:layout_marginTop="5dp"
         android:layout_marginRight="10dp"
+        android:textColor="#ddd"
         android:lines="3"
         android:textSize="14sp"
         android:layout_below="@+id/title" />
@@ -43,6 +35,22 @@
         android:layout_height="match_parent"
         android:id="@+id/host_button"
         style="@style/GenButton"
-        android:layout_margin="10dp"/>
+        android:layout_alignTop="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:layout_alignStart="@+id/image"
+        android:layout_toStartOf="@+id/title" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/image"
+        android:layout_marginLeft="21dp"
+        android:layout_marginRight="10dp"
+        android:layout_toEndOf="@+id/image"
+        android:textColor="#fff"
+        android:textSize="15sp"
+        android:id="@+id/title"
+        tools:text="title" />
 
 </RelativeLayout>
