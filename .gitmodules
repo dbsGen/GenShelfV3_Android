@@ -1,3 +1,6 @@
 [submodule "app/src/main/cpp/grender"]
 	path = app/src/main/cpp/grender
 	url = https://github.com/dbsGen/grender.git
+[submodule "app/src/main/assets/resources/ruby/hiengine"]
+	path = app/src/main/assets/resources/ruby/hiengine
+	url = https://github.com/dbsGen/GenShelf_Ruby.git
