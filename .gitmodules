@@ -4,3 +4,6 @@
 [submodule "app/src/main/assets/resources/ruby/hiengine"]
 	path = app/src/main/assets/resources/ruby/hiengine
 	url = https://github.com/dbsGen/GenShelf_Ruby.git
+[submodule "app/src/main/cpp/program/common"]
+	path = app/src/main/cpp/program/common
+	url = https://github.com/dbsGen/GenShelf_Common.git
