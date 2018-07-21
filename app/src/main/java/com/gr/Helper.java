@@ -100,8 +100,10 @@ public class Helper {
     }
 
     public static char checkType(Object obj) {
-        if (obj instanceof Integer || obj instanceof Boolean) {
+        if (obj instanceof Integer) {
             return 'i';
+        }else if (obj instanceof Boolean){
+            return 'b';
         } else if (obj instanceof Long) {
             return 'l';
         } else if (obj instanceof Float) {

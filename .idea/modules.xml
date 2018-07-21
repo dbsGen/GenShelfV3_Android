@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GenShelfV3_Android.iml" filepath="$PROJECT_DIR$/GenShelfV3_Android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/GenShelfV3_Android.iml" filepath="$PROJECT_DIR$/GenShelfV3_Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
