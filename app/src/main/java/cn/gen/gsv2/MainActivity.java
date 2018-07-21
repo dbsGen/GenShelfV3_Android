@@ -233,8 +233,8 @@ public class MainActivity extends Activity
 
         if (!SplashActivity.isLoaded()) {
             String genPath = SplashActivity.libPath(this) + "libgsv2.so";
-            System.load(genPath);
-//            System.loadLibrary("gsv2");
+//            System.load(genPath);
+            System.loadLibrary("gsv2");
             SplashActivity.setLoaded(true);
 
             Helper.registerClass(Chapter.class);

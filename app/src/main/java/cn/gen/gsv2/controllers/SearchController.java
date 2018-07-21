@@ -55,6 +55,8 @@ public class SearchController extends Controller implements SwipeRefreshLayout.O
         public void setTips(Array<String> tips) {
             this.tips = tips;
             notifyDataSetChanged();
+            if (tips.size() > 0)
+                searchView.showSuggestions();
         }
 
         @Override
@@ -131,6 +133,7 @@ public class SearchController extends Controller implements SwipeRefreshLayout.O
                 if (searchView != null) {
                     searchAdapter.setTips(SearchTip.search(null));
                     searchView.showSearch(true);
+                    searchView.showSuggestions();
                 }
             }
         }));
