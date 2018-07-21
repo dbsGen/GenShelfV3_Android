@@ -7,8 +7,8 @@ android {
         applicationId "cn.gen.gsv2"
         minSdkVersion 17
         targetSdkVersion 25
-        versionCode 33
-        versionName "3.11.0"
+        versionCode 34
+        versionName "3.11.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
