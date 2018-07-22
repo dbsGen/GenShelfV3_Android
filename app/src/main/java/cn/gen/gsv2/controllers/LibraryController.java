@@ -358,7 +358,7 @@ public class LibraryController extends Controller implements SwipeRefreshLayout.
                     Array books = (Array)args[1];
                     boolean noMore = false;
                     if (args.length > 2) {
-                        noMore = (int)args[2] == 1;
+                        noMore = (boolean)args[2];
                     }
                     String id = Shop.getCurrentShop().getIdentifier();
                     for (Object book : books) {
