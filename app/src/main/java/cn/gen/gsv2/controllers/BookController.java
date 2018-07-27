@@ -316,6 +316,7 @@ public class BookController extends Controller implements SwipeRefreshLayout.OnR
 
     @Override
     public void click(int index) {
+        if (!active) return;
         ViewController ctrl = Controller.instantiate(getContext(), ViewController.class);
         Chapter chapter = chapters.get(index);
         book.setLastChapter(chapter);
@@ -324,7 +325,10 @@ public class BookController extends Controller implements SwipeRefreshLayout.OnR
         ctrl.setBook(book);
         ctrl.setLocalBook(false);
         ctrl.setOnChapterChangedListener(this);
-        H.navC(this).push(ctrl, true);
+        try {
+            H.navC(this).push(ctrl, true);
+        }catch (Exception e) {
+        }
     }
 
     @Override

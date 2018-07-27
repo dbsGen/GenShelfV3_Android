@@ -278,7 +278,7 @@ public class SearchController extends Controller implements SwipeRefreshLayout.O
                     Array<Book> bs = (Array<Book>)args[1];
                     boolean no_more = false;
                     if (args.length > 2 && args[2] != null) {
-                        no_more = (int)args[2] != 0;
+                        no_more = (boolean)args[2];
                     }
                     books.clear();
                     String id = Shop.getCurrentShop().getIdentifier();

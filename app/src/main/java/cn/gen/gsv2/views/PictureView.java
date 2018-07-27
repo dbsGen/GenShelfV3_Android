@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import android.os.Debug;
 import android.support.annotation.DrawableRes;
 import android.util.AttributeSet;
 import android.util.Log;
