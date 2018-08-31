@@ -4,82 +4,103 @@ require 'http_client'
 require 'callback'
 require 'data'
 require 'xml'
-require "duktape"
 
 class Reader < HiEngine::Object
-  HOST_URL = 'http://manhua.fzdm.com/'
   @stop = false
-  @chapter_url
 
-  def load_page url
-    root = url.gsub(/index_\d+.html$/, '')
-
-    request root, 0
+  def process chapter
+    @stop = false
+    load_page chapter.url
   end
 
-  def request root_url, idx
-    @client = HTTPClient.new root_url + "index_#{idx}.html"
+
+  def get_passid 
+    p_id = settings.find 'pass_id'
+    p_secret = settings.find 'pass_secret'
+    yield p_id, p_secret
+  end
+
+  def load_page url, pages = [], offset = 0
+    @client = HTTPClient.new url
     @client.read_cache = true
     @client.retry_count = 3
+    @client.delay = 0.5
+    is_ex = settings.find 'Switch'
+    if is_ex == 1
+      get_passid do |p_id, p_secret|
+        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
+      end
+    end
     @client.on_complete = Callback.new do |c|
       @client = nil
       return if @stop
       if c.getError.length == 0
-        parse_page root_url, c.path,  idx do |idx, page, has_more|
-          if idx != false
-            loadedPage idx, true, page
-            if has_more
-              request root_url, idx+1
-            else
-              self.on_page_count.inv true, idx+1
-            end
-          else 
-            loadedPage idx, false, Page.new
-            self.on_page_count.inv false
+        doc = XMLDocument.new FileData.new(c.path), 1
+        rows = doc.xpath "//div[@id='gdt']/div[@class='gdtm']//a"
+        rows.each do |row|
+          page = Page.new
+          page.status = 0
+          page.url = row.attr 'href'
+          pages << page
+        end
+        next_node = doc.xpath("//div[@class='gtb']/table[@class='ptt'][1]//td[last()]/a").first
+        process_page pages, offset do
+          if next_node
+            n_url = next_node.attr 'href'
+            load_page n_url, pages, pages.size
+          else
+            self.on_page_count.inv true, pages.size
           end
         end
       else
-        p c.getError
-        loadedPage idx, false, Page.new
         self.on_page_count.inv false
       end
     end
     @client.start
+    @client
   end
 
-  def parse_page root_url, path, idx
-    begin
-      unless @javascript
-        @javascript = DuktapeEngine.new
-        @javascript.eval file('base64.js').text
-        @javascript.eval file('pro.js').text
+  def process_page pages, index, &block
+    page = pages[index]
+    url = page.url
+    request_page url do |success, pic|
+      if success
+        page.picture = pic
+        loadedPage index, true, page
+        if index < pages.size - 1
+          process_page pages, index + 1, &block
+        else
+          yield
+        end
+      else
+        loadedPage index, false, page
       end
-      doc = XMLDocument.new FileData.new(path), 1
-      nodes = doc.xpath("//script[not(@src)]")
-      node = nodes[nodes.size - 2]
-      @javascript.eval node.getContent
-      pic = @javascript.eval 'html_str'
-      
-      page = Page.new
-      page.url = root_url + "index_#{idx}.html"
-      pic[/src=["']([^'"]+)/]
-      page.picture = $1
-      
-      links = doc.xpath('//*[@class="navigation"]/a')
-      yield idx, page, links.last.getContent == '下一页'
-    rescue Exception => e
-      p e
-      yield false
     end
   end
 
-  # 开始解析一个章节，读取其中所有的页
-  def process chapter
-    @chapter_url = chapter.url
-    @stop = false
-    page = Page.new
-    page.url = chapter.url
-    load_page page.url
+  def request_page url, read_cache = true
+    @client = HTTPClient.new url
+    @client.delay = 0.5
+    @client.read_cache = read_cache
+    @client.retry_count = 3
+    is_ex = settings.find 'Switch'
+    if is_ex == 1
+      get_passid do |p_id, p_secret|
+        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
+      end
+    end
+    @client.on_complete = Callback.new do |c|
+      @client = nil
+      if c.getError.length == 0
+        doc = XMLDocument.new FileData.new(c.path), 1
+        img_node = doc.xpath("//img[@id='img']").first
+        yield true, img_node.attr('src')
+      else
+        yield false, nil
+      end
+    end
+    @client.start
+    @client
   end
 
   def stop
@@ -91,28 +112,13 @@ class Reader < HiEngine::Object
 
   def reloadPage page, idx, on_complete
     @stop = false
-    page.status = 0
-    @client = HTTPClient.new page.url
-    @client.read_cache = false
-    @client.retry_count = 3
-    @client.on_complete = Callback.new do |c|
-      @client = nil
-      return if @stop
-      if c.getError.length == 0
-        page.status = 1
-        root = page.url.gsub(/index_\d+.html$/, '')
-        parse_page root, c.path, idx  do |idx, page|
-          if idx
-            on_complete.inv true, page
-          else
-            on_complete.inv false, page
-          end
-        end
+    request_page page.url, false do |success, pic|
+      if success
+        page.picture = pic
+        on_complete.inv true, page
       else
-        page.status = -1
         on_complete.inv false, page
       end
     end
-    @client.start
   end
 end
