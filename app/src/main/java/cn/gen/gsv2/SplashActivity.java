@@ -48,7 +48,7 @@ public class SplashActivity extends com.gr.Activity {
 
     Handler handler = new Handler();
 
-    public static final int LIB_VERSION = 13;
+    public static final int LIB_VERSION = 16;
     static boolean loaded = false;
 
     public static boolean isLoaded() {

@@ -4,103 +4,118 @@ require 'http_client'
 require 'callback'
 require 'data'
 require 'xml'
+require 'gumbo'
+require "duktape"
 
 class Reader < HiEngine::Object
   @stop = false
+  @chapter_url
 
-  def process chapter
-    @stop = false
-    load_page chapter.url
+  def servce_url 
+    unless @s_url
+      url = 'http://box.dzzgg.com/box/lists.xml'
+      @client = HTTPClient.new url
+      @client.on_complete = Callback.new do |c|
+        if c.getError.length == 0
+          doc = XMLDocument.new FileData.new(c.path), 0
+          ret = doc.xpath('//sever').first.getContent
+          @s_url = js_engine.eval("common.decryptCode('#{ret}')")
+          yield @s_url
+        else
+          yield nil
+        end
+      end
+      @client.start
+    else
+      yield @s_url
+    end
   end
 
-
-  def get_passid 
-    p_id = settings.find 'pass_id'
-    p_secret = settings.find 'pass_secret'
-    yield p_id, p_secret
+  def js_engine
+    unless @js
+      @js = DuktapeEngine.new
+      @js.eval(file('core.js').text)
+      @js.eval(file('enc-base64.js').text)
+      @js.eval(file('cipher-core.js').text)
+      @js.eval(file('aes.js').text)
+      @js.eval(file('crypto.js').text)
+    end
+    @js
   end
 
-  def load_page url, pages = [], offset = 0
-    @client = HTTPClient.new url
+  def load_page url, idx
+    page = Page.new 
+    page.url = url
+    @client = HTTPClient.new page.url
     @client.read_cache = true
     @client.retry_count = 3
-    @client.delay = 0.5
-    is_ex = settings.find 'Switch'
-    if is_ex == 1
-      get_passid do |p_id, p_secret|
-        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
-      end
-    end
     @client.on_complete = Callback.new do |c|
       @client = nil
-      return if @stop
       if c.getError.length == 0
-        doc = XMLDocument.new FileData.new(c.path), 1
-        rows = doc.xpath "//div[@id='gdt']/div[@class='gdtm']//a"
-        rows.each do |row|
-          page = Page.new
-          page.status = 0
-          page.url = row.attr 'href'
-          pages << page
-        end
-        next_node = doc.xpath("//div[@class='gtb']/table[@class='ptt'][1]//td[last()]/a").first
-        process_page pages, offset do
-          if next_node
-            n_url = next_node.attr 'href'
-            load_page n_url, pages, pages.size
+        utf8d = Encoder.decode FileData.new(c.path), 'gb2312'
+        doc = GBDocument.new utf8d
+        enc_nodes = doc.css("#encrypt")
+        if enc_nodes.size > 0
+          enc = enc_nodes.first.getContent
+          ret = js_engine.eval("common.decrypt('#{enc}', #{idx})")
+          servce_url do |hu|
+            if hu
+              page.picture = hu + ret[0]
+  
+              next_node = doc.css(".fanye1 > li:last-child a").first
+              next_url = nil
+              if next_node.attr('href') != '#'
+                next_url = url.gsub(/[^\/]+$/, next_node.attr('href'))
+              end
+  
+              yield page, true, next_url
+            else
+              yield page, false, nil
+            end
+          end
+        else
+          img_node = doc.css('#nr234img img').first
+          if img_node
+            page.picture = img_node.attr('src')
+  
+            next_node = doc.css(".fanye1 > li:last-child a").first
+            next_url = nil
+            if next_node.attr('href') != '#'
+              next_url = url.gsub(/[^\/]+$/, next_node.attr('href'))
+            end
+            yield page, true, next_url
           else
-            self.on_page_count.inv true, pages.size
+            yield page, false, nil
           end
         end
+        
       else
-        self.on_page_count.inv false
+        yield page, false, nil
       end
     end
     @client.start
-    @client
   end
 
-  def process_page pages, index, &block
-    page = pages[index]
-    url = page.url
-    request_page url do |success, pic|
-      if success
-        page.picture = pic
-        loadedPage index, true, page
-        if index < pages.size - 1
-          process_page pages, index + 1, &block
+  def load_p url, idx
+    load_page url, idx do |page, res, next_url| 
+      if res
+        loadedPage idx, true, page
+        if next_url
+          load_p next_url, idx + 1
         else
-          yield
+          on_page_count.inv true, idx + 1
         end
       else
-        loadedPage index, false, page
+        loadedPage idx, false, page
+        on_page_count.inv false
       end
     end
   end
 
-  def request_page url, read_cache = true
-    @client = HTTPClient.new url
-    @client.delay = 0.5
-    @client.read_cache = read_cache
-    @client.retry_count = 3
-    is_ex = settings.find 'Switch'
-    if is_ex == 1
-      get_passid do |p_id, p_secret|
-        @client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
-      end
-    end
-    @client.on_complete = Callback.new do |c|
-      @client = nil
-      if c.getError.length == 0
-        doc = XMLDocument.new FileData.new(c.path), 1
-        img_node = doc.xpath("//img[@id='img']").first
-        yield true, img_node.attr('src')
-      else
-        yield false, nil
-      end
-    end
-    @client.start
-    @client
+  # 开始解析一个章节，读取其中所有的页
+  def process chapter
+    @stop = false
+    load_p chapter.url, 0
   end
 
   def stop
@@ -112,9 +127,9 @@ class Reader < HiEngine::Object
 
   def reloadPage page, idx, on_complete
     @stop = false
-    request_page page.url, false do |success, pic|
-      if success
-        page.picture = pic
+    page.status = 0
+    load_page page.url, idx do |page, res, next_url| 
+      if res
         on_complete.inv true, page
       else
         on_complete.inv false, page

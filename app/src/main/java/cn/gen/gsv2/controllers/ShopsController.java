@@ -47,7 +47,7 @@ import cn.nekocode.badge.BadgeDrawable;
 public class ShopsController extends Controller implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String NOTIFICATION_UPDATE_BADGE = "UPDATE_BADGE";
-    final int SUPPORT_PACKAGE_VERSION = 9;
+    final int SUPPORT_PACKAGE_VERSION = 13;
 
     ListView listView;
     SwipeRefreshLayout refreshView;

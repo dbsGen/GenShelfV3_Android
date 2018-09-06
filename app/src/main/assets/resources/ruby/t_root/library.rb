@@ -3,172 +3,111 @@ require 'models'
 require 'http_client'
 require 'callback'
 require 'data'
-require 'xml'
+require 'gumbo'
+require 'encoder'
 
 class Library < HiEngine::Object
 
-  def host_url is_ex
-    if is_ex then 'https://exhentai.org' else 'https://e-hentai.org' end
-  end
+  HOST_URL = 'http://m.baobaoman.com'
 
-  def parse path, igneous, on_complete
-    begin
-      doc = XMLDocument.new FileData.new(path), 1
-      books = []
-      nodes = doc.xpath "//table[@class='itg']//tr[@class='gtr0' or @class='gtr1']"
-      nodes.each do |node|
-        img_node = node.xpath("td//div[@class='it2']").first
-        book = Book.new
-        imgs = img_node.xpath('img')
-        if imgs.size == 0
-          str = img_node.getContent
-          str.gsub!('inits~', 'https://')
-          arr = str.split '~'
-          if arr.size >= 2
-            book.thumb = arr[0..1].join '/'
-          end
-        else
-          img = imgs[0]
-          book.thumb = img.attr 'src'
-        end
-        is_ex = settings.find 'Switch'
-        if is_ex and igneous != nil
-          get_passid do |p_id, p_secret|
-            book.thumb_headers = {'Cookie' => "igneous=#{igneous};"}
-          end
-        end
+  def parse path
+    utf8d = Encoder.decode FileData.new(path), 'gb2312'
+    doc = GBDocument.new utf8d
+    books = []
+    nodes = doc.css "ul.pic.pic1 > li"
+    nodes.each do |node|
+      book = Book.new
+      book.thumb = node.css('img').first.attr('src')
+      title_node = node.css('.txt').first
+      book.url = HOST_URL + title_node.attr('href')
+      book.subtitle = book.name = title_node.getContent
+      
+      books << book
+    end
 
-        title_node = node.xpath("td//div[@class='it5']/a").first
-        book.url = title_node.attr 'href'
-        book.name = title_node.getContent.strip
-        book.subtitle = node.xpath("td[@class='itd']").first.getContent.strip
-        books << book
+    ps = doc.css('.showpage > li')
+    no_more = true
+    ps.each do |p|
+      if p.getContent == '下一页'
+        no_more = false
+        break
       end
-      on_complete.invoke [true, books]
-    rescue Exception => e
-      p e
-      on_complete.invoke [false]
     end
+    yield true, books, no_more
   end
 
-  def c b
-    if b
-      1
-    else
-      0
+  def host_url page
+    unless @types
+      @types = JSON.parse(file('types.json').text).values 
     end
+    t = settings.find('类别') || 0
+    st = @types[t]
+    "#{HOST_URL}/#{st['t']}/list_#{st['n']}_#{page+1}.html"
   end
 
-  def append
-    str = "f_doujinshi=#{c settings.find('DOUJINSHI')}&"
-    str << "f_manga=#{c settings.find('MANGA')}&"
-    str << "f_artistcg=#{c settings.find('ARTIST GS')}&"
-    str << "f_gamecg=#{c settings.find('GAME CG')}&"
-    str << "f_western=#{c settings.find('WESTERN')}&"
-    str << "f_non-h=#{c settings.find('NON-H')}&"
-    str << "f_imageset=#{c settings.find('IMAGE SET')}&"
-    str << "f_cosplay=#{c settings.find('COSPLAY')}&"
-    str << "f_asianporn=#{c settings.find('ASIAN PORN')}&"
-    str << "f_misc=#{c settings.find('MISC')}"
-  end
-
-  def get_passid
-    p_id = settings.find 'pass_id'
-    p_secret = settings.find 'pass_secret'
-    yield p_id, p_secret
-  end
-
-  # @description 加载主页接口。
+  # 加载主页接口。
+  # @method load
   # @param page 分页，从0开始
   # @param on_complete 结束回调
+  # => 成功: on_complete.inv true, books([Book...]), no_more(bool)
+  # => 失败: on_complete.inv false
   # @return client 把请求反回，让主程序页面退出的时候有能力结束请求。
   #   不过这个client并不是关键要素，所以有一串请求时也不必担心，返回最开始的一个就行。
   def load page, on_complete
-    is_ex = settings.find 'Switch'
-    url = "#{host_url is_ex}/?#{append}&page=#{page}&f_apply=Apply+Filter"
-    p url
-    if is_ex
-      get_passid do |p_id, p_secret|
-        client = HTTPClient.new url
-        client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
-        client.on_complete = Callback.new do |c|
-          if c.getError.length == 0
-            set_cookie = c.response_headers['Set-Cookie']
-            igneous = set_cookie[/(?<=igneous\=)[^;]+/]
-            parse c.path, igneous, on_complete
-          else
-            on_complete.invoke [false]
-          end
-        end
-        client.start
-        client
-      end
-    else
-      client = HTTPClient.new url
-      client.on_complete = Callback.new do |c|
-        if c.getError.length == 0
-          parse c.path, nil, on_complete
-        else
-          on_complete.invoke [false]
-        end
-      end
-      client.start
-      client
-    end
+    url = host_url(page)
 
+    client = HTTPClient.new url
+    client.on_complete = Callback.new do |c|
+      if c.getError.length == 0
+      	parse c.path do |success, books, no_more|
+        	on_complete.inv success, books, no_more
+      	end
+      else
+        on_complete.invoke [false]
+      end
+    end
+    client.start
+    client
   end
 
-  # @description 读去书本详细信息的接口。
+  # 读去书本详细信息的接口。
+  # @method loadBook
   # @param book Book对象
   # @param page 分页，从0开始
   # @param on_complete 结束回调
+  # => 成功: on_complete.inv true, new_book(Book), chapters([Chapter...]), no_more(bool)
+  # => 失败: on_complete.inv false
   # @return client 把请求反回，让主程序页面退出的时候有能力结束请求。
   def loadBook book, page, on_complete
-    chapter = Chapter.new
-    chapter.name = 'Chapter 1'
+    chapter = Chapter.new 
     chapter.url = book.url
-    on_complete.invoke [true, book, [chapter], false]
-    nil
+    chapter.name = "Chapter"
+
+    on_complete.inv true , book, [chapter], false
   end
 
   # @description 搜索接口
   # @param key 搜索关键字
   # @param page 分页，从0开始
   # @param on_complete 结束回调
+  # => 成功: on_complete.inv true, books([Book...]), no_more(bool)
+  # => 失败: on_complete.inv false
   # @return client 把请求反回，让主程序页面退出的时候有能力结束请求。
   def search key, page, on_complete
-
-    is_ex = settings.find 'Switch'
-    url = "#{host_url is_ex}/?page=#{page}&f_search=#{HTTP::URL::encode key}&f_sname=1&#{append}&f_stags=1&f_apply=Apply+Filter"
-    if is_ex
-      get_passid do |p_id, p_secret|
-        client = HTTPClient.new url
-        client.addHeader 'Cookie', "ipb_member_id=#{p_id}; ipb_pass_hash=#{p_secret}"
-        client.on_complete = Callback.new do |c|
-          if c.getError.length == 0
-            set_cookie = c.response_headers['Set-Cookie']
-            igneous = set_cookie[/(?<=igneous\=)[^;]+/]
-            parse c.path, igneous, on_complete
-          else
-            on_complete.invoke [false]
-          end
-        end
-        client.start
-        client
+    url = "http://m.baobaoman.com/plus/search.php?kwtype=0&q=#{Encoder.urlEncodeWithEncoding key, 'gb2312'}"
+    
+    client = HTTPClient.new url
+    client.on_complete = Callback.new do |c|
+      if c.getError.length == 0
+      	parse c.path do |success, books, no_more|
+        	on_complete.inv success, books, no_more
+      	end
+      else
+        on_complete.invoke [false]
       end
-    else
-      client = HTTPClient.new url
-      client.on_complete = Callback.new do |c|
-        if c.getError.length == 0
-          parse c.path, nil, on_complete
-        else
-          on_complete.invoke [false]
-        end
-      end
-      client.start
-      client
     end
-
+    client.start
+    client 
   end
 
 end

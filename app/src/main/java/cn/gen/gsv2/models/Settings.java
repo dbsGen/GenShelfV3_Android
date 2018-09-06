@@ -38,7 +38,10 @@ public class Settings extends Helper.GInstance {
         }
 
         public int getType() {
-            return (int)call("getType");
+            Object t = call("getType");
+            if (t instanceof Integer) {
+                return (int)t;
+            } return 0;
         }
         public void setType(int type) {
             call("setType", type);
